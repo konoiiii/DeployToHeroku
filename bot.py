@@ -1,58 +1,67 @@
-from telegram import Update,ReplyKeyboardMarkup,ReplyKeyboardRemove,Bot,InlineKeyboardButton,InlineKeyboardMarkup,KeyboardButton,CallbackQuery,ParseMode
-from telegram.ext import CommandHandler,Updater,Dispatcher,MessageHandler,Filters,CallbackContext,CallbackQueryHandler
-import logging
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyromod import listen
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+api_id = 7309528
+api_hash = "889011dbc11c7f87a50af540b2745354"
+api_key = "5087985942:AAGwR4uuLrGjGcnBtCrzJuOFI0Cds-_C8O8"
 
-logger = logging.getLogger(__name__)
-
-tkn = "Your Bot Token"
-updater = Updater(tkn,use_context=True)
-bot = Bot(tkn)
-dispatcher : Dispatcher = updater.dispatcher
-
-def start(update:Update, context:CallbackContext):
-    firstname = update.effective_message.from_user.first_name
-    chtiD = update.effective_message.chat_id
-    username = update.effective_message.from_user.username
-    txt = update.effective_message.text
-    keyboard = [
-        [KeyboardButton('Help')],
-        [KeyboardButton('Contact us')]
-    ]
-    key = ReplyKeyboardMarkup(keyboard,resize_keyboard=True)
+with Client("my_account", api_id, api_hash, api_key) as app:
+    pass
 
 
-    if txt=="Help":
-        bot.send_message(
-            chat_id=chtiD,
-            text="How to Deploy Your Telegram bot on Heroku\n\nچگونه ربات خود را در Heroku راه اندازی کنید",
-            reply_to_message_id=update.effective_message.message_id,
-        )
-    elif txt=="Contact us":
-        bot.send_message(
-            chat_id=chtiD,
-            text="<u>Website : </u>Rexxar.ir\n\n<i>Telegram : </i>@Rexxar_ir",
-            reply_to_message_id=update.effective_message.message_id,
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        bot.send_message(
-            chat_id=chtiD,
-            text=f"نام کاربری شما {firstname}" + f"\n\nیوزرنیم شما : {username}" + f"\n\nآیدی عددی شما : {str(chtiD)}",
-            reply_to_message_id=update.effective_message.message_id,
-            reply_markup=key
+
+#START
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    await app.send_message(message.chat.id, f"""
+👋 **Benvenuto** {message.from_user.mention} nel bot ufficiale di @Mangapertutti 🎌
+
+❔__Cosa posso fare qui?__
+Tramite il comando /manga puoi consigliare un manga che vorresti che pubblicassimo. 
+⚠ **ATTENZIONE**! Solamente i migliori verranno pubblicati, eventuali scherzi verranno puniti con un ban!
+
+**SEGUICI SUI NOSTRI SOCIAL** ⬇️
+""", reply_markup=InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                            "📫 Canale News",
+                            url="https://t.me/mangapertutti")
+            ],
+
+            [
+                InlineKeyboardButton(
+                    "🌐 Sito Web",
+                    url="https://www.mangapertutti.ga")
+
+            ]
+
+        ]
+    ))
+
+#FUNZIONE SUGGERIMENTO MANGA TRAMITE COMANDO
+@app.on_message(filters.command("manga"))
+async def start(client,message):
+    answer = await client.ask(message.chat.id, f'''
+    
+📖 **NUOVO SUGGERIMENTO MANGA**
+
+Hey {message.from_user.mention}, invia il nome del manga che vuoi suggerire!! 
+
+__I migliori verranno selezionati e poi pubblicati.__
+    
+    ''')
+    await client.send_message("konoiiii", f'Hai un nuovo suggerimento da parte di {message.from_user.mention} » {answer.text}')
+    await client.send_message(message.chat.id, "**Suggerimento inoltrato allo staff, grazie! **😊")
 
 
-        )
-
-def main():
-
-    dispatcher.add_handler(MessageHandler(Filters.text,start))
-    updater.start_polling()
+@app.on_message(filters.command("test"))
+async def test(client, message):
+    await message.reply(f"la tua mention è {message.from_user.mention}")
 
 
-if __name__ == '__main__':
-    main()
+
+
+
+app.run()
